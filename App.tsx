@@ -5,160 +5,41 @@
  * @format
  */
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View, Text, TouchableOpacity } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
-import { FontAwesome } from '@react-native-vector-icons/fontawesome'
-import { AntDesign } from '@react-native-vector-icons/ant-design'
+import { createStaticNavigation, useNavigation } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+import StealScreen from './src/screens/Steal';
+import HomeScreen from './src/screens/Home';
 
-  return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
-  );
-}
 
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-  const isDarkMode = useColorScheme() === 'dark';
-  const totalAmount = 124.50; // Example amount
-  const name = 'Guishermo';
+const mainColor = '#6366f1';
 
-  return (
-    <View style={[styles.container, { paddingTop: safeAreaInsets.top }]}>
-      {/* <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      /> */}
-      
-      <View style={styles.content}>
-        <Text style={[styles.greeting, { color: isDarkMode ? '#fff' : '#000' }]}>
-          Bienvenido de vuelta, {name}
-        </Text>
-        
-        <View style={styles.moneyCardWrapper}>
-          <View style={styles.moneyCardUnderlay} />
-          <LinearGradient
-            colors={['#6366f1', '#6366f130']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0.95, y: 0 }}
-            style={styles.moneyCard}
-          >
-            <Text style={styles.moneyLabel}>Balance toal</Text>
-            <Text style={styles.moneyAmount}>
-              {totalAmount.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} OLS
-            </Text>
-          </LinearGradient>
-        </View>
-        
-        <View style={styles.actionsRow}>
-          <TouchableOpacity style={styles.actionButton} activeOpacity={0.8}>
-            <View style={styles.actionIconWrapper}>
-              <FontAwesome name="rocket" color="rgb(255, 255, 255)" size={25} />
-            </View>
-            <Text style={styles.actionLabel}>Robar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} activeOpacity={0.8}>
-            <View style={styles.actionIconWrapper}>
-              <AntDesign name="rocket" color="rgb(255, 255, 255)" size={25} />
-            </View>
-            <Text style={styles.actionLabel}>Enviar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} activeOpacity={0.8}>
-            <View style={styles.actionIconWrapper}>
-              <AntDesign name="money-collect" color="rgb(255, 255, 255)" size={25} />
-            </View>
-            <Text style={styles.actionLabel}>Recibir</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-const backgroundColor = 'rgb(28, 30, 37)';
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: backgroundColor,
+const RootStack = createNativeStackNavigator({
+  screenOptions: {
+    headerStyle: {
+      backgroundColor: mainColor,
+    },
+    headerTintColor: '#fff',
+    headerTitleStyle: {
+      fontWeight: 'bold',
+    },
   },
-  actionsRow: {
-    marginTop: 18,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  actionButton: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  actionIconWrapper: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#312e81',
-  },
-  actionLabel: {
-    marginTop: 8,
-    color: '#e0e7ff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-    paddingTop: 40,
-  },
-  greeting: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 30,
-  },
-  moneyCardWrapper: {
-    position: 'relative',
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    overflow: 'hidden',
-  },
-  moneyCardUnderlay: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    backgroundColor: backgroundColor,
-  },
-  moneyCard: {
-    borderRadius: 16,
-    padding: 24,
-  },
-  moneyLabel: {
-    fontSize: 12,
-    color: '#e0e7ff',
-    fontWeight: '600',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  moneyAmount: {
-    fontSize: 35,
-    fontWeight: 'bold',
-    color: '#ffffff',
+  screens: {
+    Home: {
+      screen: HomeScreen,
+      options: { title: 'Bienvenido' },
+    },
+    Steal: {
+      screen: StealScreen,
+      options: { title: 'Robar' },
+    },
   },
 });
+
+const Navigation = createStaticNavigation(RootStack);
+
+export function App() {
+  return <Navigation />;
+}
 
 export default App;
