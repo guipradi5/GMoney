@@ -10,13 +10,47 @@ import { useNavigation } from '@react-navigation/native';
 
 import { globalStyles, backgroundColor } from '../styles/global';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getProfile } from '../api/api';
+
 
 export default function HomeScreen() {
     const isDarkMode = useColorScheme() === 'dark';
     const safeAreaInsets = useSafeAreaInsets();
 
-    const totalAmount = 124.50; // Example amount
-    const name = 'Guishermo';
+    const [userName, setUserName] = useState<string | null>('');
+    const [balance, setBalance] = useState<number>(0);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                // Obtener nombre del storage
+                const storedName = await AsyncStorage.getItem('name');
+                if (storedName) {
+                    setUserName(storedName);
+                }
+
+                // Obtener perfil y balance
+                await getProfile();
+                const userBalance = await AsyncStorage.getItem('balance') || '0';
+
+                setBalance(parseFloat(userBalance));
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                // Intentar cargar el balance del storage si la llamada falla
+                const storedBalance = await AsyncStorage.getItem('balance') || '0';
+                if (storedBalance) {
+                    setBalance(parseFloat(storedBalance));
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, []);
 
     type RootStackParamList = {
         Home: undefined;
@@ -37,7 +71,7 @@ export default function HomeScreen() {
 
                 <View style={globalStyles.content}>
                     <Text style={[globalStyles.greeting, { color: isDarkMode ? '#fff' : '#000' }]}>
-                        Bienvenido de vuelta, {name}
+                        Bienvenido de vuelta, {userName}
                     </Text>
 
                     <View style={styles.moneyCardWrapper}>
@@ -48,9 +82,9 @@ export default function HomeScreen() {
                             end={{ x: 0.95, y: 0 }}
                             style={styles.moneyCard}
                         >
-                            <Text style={styles.moneyLabel}>Balance toal</Text>
+                            <Text style={styles.moneyLabel}>Balance total</Text>
                             <Text style={styles.moneyAmount}>
-                                {totalAmount.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} OLS
+                                {balance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} OLS
                             </Text>
                         </LinearGradient>
                     </View>

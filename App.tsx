@@ -14,6 +14,7 @@ import LoginScreen from './src/screens/Login';
 import { View } from 'react-native';
 
 import * as React from 'react';
+import RegisterScreen from './src/screens/Register';
 
 
 const mainColor = '#6366f1';
@@ -33,11 +34,16 @@ const RootStack = createNativeStackNavigator({
       screen: LoginScreen,
       options: { title: 'G-Money' },
     },
+    Register: {
+      screen: RegisterScreen,
+      options: { title: 'Registrate' },
+    },
     Home: {
       screen: HomeScreen,
-      options: { title: 'Bienvenido',
+      options: {
+        title: 'Bienvenido',
         headerLeft: () => <View />,
-       },
+      },
     },
     Steal: {
       screen: StealScreen,

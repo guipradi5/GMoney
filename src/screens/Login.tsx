@@ -4,43 +4,70 @@ import { globalStyles } from '../styles/global';
 import { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { login } from "../api/api";
 
 export default function LoginScreen() {
-    
-    
-        type RootStackParamList = {
-            Home: undefined;
-        };
-        const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-        
+
+
+  type RootStackParamList = {
+    Home: undefined;
+    Register: undefined;
+  };
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
   const safeAreaInsets = useSafeAreaInsets();
-  const [text, setText] = useState('');
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleLogin = async () => {
+    try {
+      await login(email, password);
+      navigation.navigate("Home");
+    } catch (e: any) {
+      setError(e.message);
+    }
+  };
 
   return (
     <View style={[globalStyles.container, { paddingTop: safeAreaInsets.top }]}>
       <View style={[globalStyles.content, globalStyles.center]}>
-        <Text style={{ fontSize: 12, marginBottom: 10, color: '#fff' }}>Login</Text>
+        <Text style={styles.label}>Email:</Text>
         <TextInput
-          placeholder="Type here to translate!"
-          onChangeText={newText => setText(newText)}
-          defaultValue={text}
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
           style={styles.textInput}
+          placeholder="tu@email.com"
+          placeholderTextColor="#999"
         />
-        
-        <Text style={{ fontSize: 12, marginTop: 20, color: '#fff' }}>Password</Text>
+        <Text style={styles.label}>Password:</Text>
         <TextInput
-          placeholder="Type here to translate!"
-          onChangeText={newText => setText(newText)}
-          defaultValue={text}
-          style={[styles.textInput, { marginTop: 20 }]}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          style={styles.textInput}
+          placeholder="Tu contraseña"
+          placeholderTextColor="#999"
         />
+        {error ? <Text style={{ color: "red", marginTop: 10 }}>{error}</Text> : null}
         <Pressable
           style={[globalStyles.button, { marginTop: 20 }]}
           onPress={() =>
-            navigation.navigate('Home')
+            handleLogin()
           }
         >
           <Text style={globalStyles.buttonText}>Submit</Text>
+        </Pressable>
+
+        <Pressable
+          style={{ marginTop: 15 }}
+          onPress={() => navigation.navigate("Register")}
+        >
+          <Text style={{ color: "#6366f1", textAlign: "center" }}>
+            ¿No tienes cuenta? Regístrate y consigue 20 OLS gratis
+          </Text>
         </Pressable>
       </View>
     </View>
@@ -50,12 +77,19 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   textInput: {
     height: 40,
-    padding: 5,
-    marginHorizontal: 8,
+    padding: 10,
+    marginVertical: 8,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 20,
     width: '100%',
+    backgroundColor: '#fff',
+    color: '#000',
   },
-  text: { padding: 10, fontSize: 42 },
+  label: {
+    color: '#fff',
+    marginTop: 10,
+    fontWeight: '500',
+    alignSelf: 'flex-start',
+  },
 });
