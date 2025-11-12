@@ -4,7 +4,7 @@ import { globalStyles } from '../styles/global';
 import { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { register } from "../api/api";
+import { useAuth } from '../context/useAuth';
 
 export default function RegisterScreen() {
 
@@ -15,6 +15,7 @@ export default function RegisterScreen() {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
     const safeAreaInsets = useSafeAreaInsets();
+    const { signUp } = useAuth();
 
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
@@ -44,8 +45,8 @@ export default function RegisterScreen() {
 
         try {
             setLoading(true);
-            await register(email, name, password);
-            navigation.navigate("Home");
+            await signUp(email, name, password);
+            // La navegación se maneja automáticamente en App.tsx
         } catch (e: any) {
             setError(e.message);
         } finally {

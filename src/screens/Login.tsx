@@ -4,10 +4,9 @@ import { globalStyles } from '../styles/global';
 import { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { login } from "../api/api";
+import { useAuth } from '../context/useAuth';
 
 export default function LoginScreen() {
-
 
   type RootStackParamList = {
     Home: undefined;
@@ -16,17 +15,23 @@ export default function LoginScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const safeAreaInsets = useSafeAreaInsets();
+  const { signIn } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    setError("");
     try {
-      await login(email, password);
-      navigation.navigate("Home");
+      setLoading(true);
+      await signIn(email, password);
+      // La navegación se maneja automáticamente en App.tsx
     } catch (e: any) {
       setError(e.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,11 +59,10 @@ export default function LoginScreen() {
         {error ? <Text style={{ color: "red", marginTop: 10 }}>{error}</Text> : null}
         <Pressable
           style={[globalStyles.button, { marginTop: 20 }]}
-          onPress={() =>
-            handleLogin()
-          }
+          onPress={handleLogin}
+          disabled={loading}
         >
-          <Text style={globalStyles.buttonText}>Submit</Text>
+          <Text style={globalStyles.buttonText}>{loading ? "Iniciando..." : "Submit"}</Text>
         </Pressable>
 
         <Pressable
