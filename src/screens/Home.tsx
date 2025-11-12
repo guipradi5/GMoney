@@ -1,4 +1,4 @@
-import { StatusBar, StyleSheet, useColorScheme, View, Text, TouchableOpacity, Pressable } from 'react-native';
+import { StatusBar, StyleSheet, useColorScheme, View, Text, TouchableOpacity } from 'react-native';
 import {
     SafeAreaProvider,
     useSafeAreaInsets,
@@ -13,13 +13,11 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getProfile } from '../api/api';
-import { useAuth } from '../context/useAuth';
 
 
 export default function HomeScreen() {
     const isDarkMode = useColorScheme() === 'dark';
     const safeAreaInsets = useSafeAreaInsets();
-    const { signOut } = useAuth();
 
     const [userName, setUserName] = useState<string | null>('');
     const [balance, setBalance] = useState<number>(0);
@@ -60,10 +58,6 @@ export default function HomeScreen() {
         Steal: undefined;
     };
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
-    const handleLogout = async () => {
-        await signOut();
-    };
 
 
     return (
@@ -117,13 +111,6 @@ export default function HomeScreen() {
                             <Text style={styles.actionLabel}>Recibir</Text>
                         </TouchableOpacity>
                     </View>
-
-                    <Pressable
-                        style={[globalStyles.button, { marginTop: 30, backgroundColor: '#dc2626' }]}
-                        onPress={handleLogout}
-                    >
-                        <Text style={globalStyles.buttonText}>Cerrar sesión</Text>
-                    </Pressable>
                 </View>
             </View>
         </SafeAreaProvider>

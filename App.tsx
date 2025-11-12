@@ -16,6 +16,7 @@ import { View, ActivityIndicator } from 'react-native';
 
 import * as React from 'react';
 import { AuthProvider, AuthContext } from './src/context/AuthContext';
+import { UserHeaderButton } from './src/components/UserHeaderButton';
 
 const mainColor = '#6366f1';
 
@@ -61,6 +62,7 @@ function AppStack() {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
+        headerRight: () => <UserHeaderButton />,
       }}
     >
       <Stack.Screen

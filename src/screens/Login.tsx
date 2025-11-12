@@ -62,7 +62,7 @@ export default function LoginScreen() {
           onPress={handleLogin}
           disabled={loading}
         >
-          <Text style={globalStyles.buttonText}>{loading ? "Iniciando..." : "Submit"}</Text>
+          <Text style={globalStyles.buttonText}>{loading ? "Iniciando..." : "Iniciar Sesión"}</Text>
         </Pressable>
 
         <Pressable
