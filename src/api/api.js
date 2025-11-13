@@ -105,7 +105,10 @@ export async function getProfile() {
 export async function fetchWithAuth(endpoint, options = {}) {
     let token = await getToken();
 
-    let res = await fetch(`${API_URL}/${endpoint}`, {
+    const url = `${API_URL}/${endpoint}`;
+    console.log("Calling:", url);
+
+    let res = await fetch(url, {
         ...options,
         headers: {
             ...(options.headers || {}),
@@ -114,7 +117,7 @@ export async function fetchWithAuth(endpoint, options = {}) {
     });
 
     // Log status y raw output
-    console.log("Status:", res.status);
+    console.log("Status:", res.status, "URL:", url);
     const text = await res.text();
     console.log("Response text (raw):", text);
 
@@ -146,7 +149,7 @@ export async function fetchWithAuth(endpoint, options = {}) {
             });
 
             // Log de la respuesta después de refresh
-            console.log("Status (after refresh):", res.status);
+            console.log("Status (after refresh):", res.status, "URL:", url);
             const textAfterRefresh = await res.text();
             console.log("Response text (raw, after refresh):", textAfterRefresh);
 
@@ -181,4 +184,31 @@ export async function sendTokens(email, quantity) {
     if (!res.ok) throw new Error(data.message || data.error || "Error al enviar tokens");
 
     return data;
+}
+
+export async function getTransactionHistory(page = 1) {
+    const res = await fetchWithAuth(`transaction/history?page=${page}`);
+
+    const text = res._cachedText;
+
+    console.log("Transaction History Raw Response:", text);
+    console.log("Status:", res.status);
+
+    let data;
+    try {
+        data = JSON.parse(text);
+    } catch (e) {
+        console.error("No se puede parsear JSON:", e);
+        throw new Error("Respuesta inválida del servidor");
+    }
+
+    console.log("Parsed data:", data);
+
+    if (!res.ok) throw new Error(data.message || data.error || "Error al obtener historial");
+
+    const response = data.response || data;
+    console.log("Response field:", response);
+    console.log("Data array:", response.data || []);
+
+    return response.data || [];
 }

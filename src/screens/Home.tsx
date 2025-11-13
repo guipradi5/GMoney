@@ -1,4 +1,4 @@
-import { StatusBar, StyleSheet, useColorScheme, View, Text, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
+import { StatusBar, StyleSheet, useColorScheme, View, Text, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator, Pressable } from 'react-native';
 import {
     SafeAreaProvider,
     useSafeAreaInsets,
@@ -13,6 +13,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getProfile } from '../api/api';
+import { TransactionHistoryModal } from '../components/TransactionHistoryModal';
 
 
 export default function HomeScreen() {
@@ -23,6 +24,7 @@ export default function HomeScreen() {
     const [balance, setBalance] = useState<number>(0);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [historyModalVisible, setHistoryModalVisible] = useState(false);
 
     // Extraer fetch para usar en mount y en pull-to-refresh
     const fetchUserData = async () => {
@@ -121,6 +123,12 @@ export default function HomeScreen() {
                                     })()
                                 )}
                             </Text>
+                            <Pressable
+                                onPress={() => setHistoryModalVisible(true)}
+                                style={styles.historyButton}
+                            >
+                                <Text style={styles.historyButtonText}>Historial &gt;</Text>
+                            </Pressable>
                         </LinearGradient>
                     </View>
 
@@ -150,6 +158,10 @@ export default function HomeScreen() {
                     </View>
                 </View>
             </ScrollView>
+            <TransactionHistoryModal
+                visible={historyModalVisible}
+                onClose={() => setHistoryModalVisible(false)}
+            />
         </SafeAreaProvider>
     );
 }
@@ -233,5 +245,17 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#e0e7ff',
         marginLeft: 6,
+    },
+    historyButton: {
+        position: 'absolute',
+        bottom: 5,
+        right: 16,
+        paddingVertical: 6,
+        paddingHorizontal: 8,
+    },
+    historyButtonText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#e0e7ff',
     },
 });
