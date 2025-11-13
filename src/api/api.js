@@ -132,7 +132,8 @@ export async function fetchWithAuth(endpoint, options = {}) {
         if (refreshRes.ok) {
             console.log("Token refrescado con éxito");
             const refreshData = await refreshRes.json();
-            await AsyncStorage.setItem("accessToken", refreshData.access_token);
+            console.log("Refresh Response Data:", refreshData);
+            await AsyncStorage.setItem("accessToken", refreshData.response.access_token);
 
             // reintentar la petición con el nuevo token
             token = refreshData.access_token;
@@ -158,4 +159,26 @@ export async function fetchWithAuth(endpoint, options = {}) {
 
     // Retornar un objeto con el text para que no se consuma dos veces
     return { ...res, _cachedText: text };
+}
+
+export async function sendTokens(email, quantity) {
+    const res = await fetchWithAuth("transaction/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, quantity }),
+    });
+
+    const text = res._cachedText;
+
+    let data;
+    try {
+        data = JSON.parse(text);
+    } catch (e) {
+        console.error("No se puede parsear JSON:", e);
+        throw new Error("Respuesta inválida del servidor");
+    }
+
+    if (!res.ok) throw new Error(data.message || data.error || "Error al enviar tokens");
+
+    return data;
 }

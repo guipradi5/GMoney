@@ -62,6 +62,7 @@ export default function HomeScreen() {
     type RootStackParamList = {
         Home: undefined;
         Steal: undefined;
+        Send: undefined;
     };
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -132,7 +133,9 @@ export default function HomeScreen() {
                             </View>
                             <Text style={styles.actionLabel}>Robar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.actionButton} activeOpacity={0.8}>
+                        <TouchableOpacity style={styles.actionButton} activeOpacity={0.8} onPress={() =>
+                            navigation.navigate('Send')
+                        }>
                             <View style={styles.actionIconWrapper}>
                                 <AntDesign name="rocket" color="rgb(255, 255, 255)" size={25} />
                             </View>

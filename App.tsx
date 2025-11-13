@@ -17,6 +17,7 @@ import { View, ActivityIndicator } from 'react-native';
 import * as React from 'react';
 import { AuthProvider, AuthContext } from './src/context/AuthContext';
 import { UserHeaderButton } from './src/components/UserHeaderButton';
+import SendScreen from './src/screens/Send';
 
 const mainColor = '#6366f1';
 
@@ -77,6 +78,11 @@ function AppStack() {
         name="Steal"
         component={StealScreen}
         options={{ title: 'Robar' }}
+      />
+      <Stack.Screen
+        name="Send"
+        component={SendScreen}
+        options={{ title: 'Enviar' }}
       />
     </Stack.Navigator>
   );
