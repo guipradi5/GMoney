@@ -1,4 +1,4 @@
-import { StatusBar, StyleSheet, useColorScheme, View, Text, TouchableOpacity } from 'react-native';
+import { StatusBar, StyleSheet, useColorScheme, View, Text, TouchableOpacity, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
 import {
     SafeAreaProvider,
     useSafeAreaInsets,
@@ -22,34 +22,40 @@ export default function HomeScreen() {
     const [userName, setUserName] = useState<string | null>('');
     const [balance, setBalance] = useState<number>(0);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+
+    // Extraer fetch para usar en mount y en pull-to-refresh
+    const fetchUserData = async () => {
+        try {
+            setLoading(true);
+
+            // Obtener nombre del storage
+            const storedName = await AsyncStorage.getItem('name');
+            if (storedName) {
+                setUserName(storedName);
+            }
+
+            // Obtener perfil y balance
+            const profile = await getProfile();
+            // el endpoint puede devolver balance en profile.user.balance o profile.balance
+            const userBalance = profile?.user?.balance ?? profile?.balance ?? (await AsyncStorage.getItem('balance')) ?? '0';
+
+            await AsyncStorage.setItem('balance', userBalance.toString());
+            setBalance(parseFloat(userBalance));
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+            // Intentar cargar el balance del storage si la llamada falla
+            const storedBalance = (await AsyncStorage.getItem('balance')) ?? '0';
+            if (storedBalance) {
+                setBalance(parseFloat(storedBalance));
+            }
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchUserData = async () => {
-            try {
-                // Obtener nombre del storage
-                const storedName = await AsyncStorage.getItem('name');
-                if (storedName) {
-                    setUserName(storedName);
-                }
-
-                // Obtener perfil y balance
-                await getProfile();
-                const userBalance = await AsyncStorage.getItem('balance') || '0';
-
-                await AsyncStorage.setItem('balance', userBalance.toString());
-                setBalance(parseFloat(userBalance));
-            } catch (error) {
-                console.error("Error fetching user data:", error);
-                // Intentar cargar el balance del storage si la llamada falla
-                const storedBalance = await AsyncStorage.getItem('balance') || '0';
-                if (storedBalance) {
-                    setBalance(parseFloat(storedBalance));
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchUserData();
     }, []);
 
@@ -63,7 +69,20 @@ export default function HomeScreen() {
     return (
         <SafeAreaProvider>
             <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-            <View style={[globalStyles.container, { paddingTop: safeAreaInsets.top }]}>
+            <ScrollView
+                contentContainerStyle={[globalStyles.container, { paddingTop: safeAreaInsets.top }]}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={() => {
+                            setRefreshing(true);
+                            fetchUserData();
+                        }}
+                        tintColor="#ffffff"
+                        colors={["#6366f1"]}
+                    />
+                }
+            >
                 {/* <NewAppScreen
                     templateFileName="App.tsx"
                     safeAreaInsets={safeAreaInsets}
@@ -84,18 +103,22 @@ export default function HomeScreen() {
                         >
                             <Text style={styles.moneyLabel}>Balance total</Text>
                             <Text style={styles.moneyAmount}>
-                                {(() => {
-                                    const fixed = (isNaN(balance) ? 0 : balance).toFixed(2);
-                                    const [intPart, decPart] = fixed.split('.');
-                                    const intFormatted = parseInt(intPart, 10).toLocaleString('es-ES');
-                                    return (
-                                        <>
-                                            <Text style={styles.moneyInteger}>{intFormatted}</Text>
-                                            <Text style={styles.moneyDecimals}>,{decPart}</Text>
-                                            <Text style={styles.moneyCurrency}> OLS</Text>
-                                        </>
-                                    );
-                                })()}
+                                {loading ? (
+                                    <ActivityIndicator size="small" color="#ffffff" />
+                                ) : (
+                                    (() => {
+                                        const fixed = (isNaN(balance) ? 0 : balance).toFixed(2);
+                                        const [intPart, decPart] = fixed.split('.');
+                                        const intFormatted = parseInt(intPart, 10).toLocaleString('es-ES');
+                                        return (
+                                            <>
+                                                <Text style={styles.moneyInteger}>{intFormatted}</Text>
+                                                <Text style={styles.moneyDecimals}>,{decPart}</Text>
+                                                <Text style={styles.moneyCurrency}> OLS</Text>
+                                            </>
+                                        );
+                                    })()
+                                )}
                             </Text>
                         </LinearGradient>
                     </View>
@@ -123,7 +146,7 @@ export default function HomeScreen() {
                         </TouchableOpacity>
                     </View>
                 </View>
-            </View>
+            </ScrollView>
         </SafeAreaProvider>
     );
 }
