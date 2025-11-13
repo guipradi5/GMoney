@@ -127,7 +127,10 @@ export async function fetchWithAuth(endpoint, options = {}) {
             body: JSON.stringify({ refresh_token: refreshToken }),
         });
 
+        console.log("Refresh Status:", refreshRes.status);
+
         if (refreshRes.ok) {
+            console.log("Token refrescado con éxito");
             const refreshData = await refreshRes.json();
             await AsyncStorage.setItem("accessToken", refreshData.access_token);
 

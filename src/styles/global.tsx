@@ -10,16 +10,16 @@ export const globalStyles = StyleSheet.create({
     content: {
         flex: 1,
         padding: 20,
-        paddingTop: 40,
+        paddingTop: 30,
     },
     greeting: {
         fontSize: 28,
         fontWeight: 'bold',
         marginBottom: 30,
     },
-    center: { 
-        flexDirection: 'column', 
-        alignItems: 'center' 
+    center: {
+        flexDirection: 'column',
+        alignItems: 'center'
     },
     button: {
         backgroundColor: '#6366f1',

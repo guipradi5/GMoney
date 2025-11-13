@@ -4,7 +4,7 @@ import {
     useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
-import { FontAwesome } from '@react-native-vector-icons/fontawesome'
+import { FontAwesome6 } from '@react-native-vector-icons/fontawesome6'
 import { AntDesign } from '@react-native-vector-icons/ant-design'
 import { useNavigation } from '@react-navigation/native';
 
@@ -71,7 +71,7 @@ export default function HomeScreen() {
 
                 <View style={globalStyles.content}>
                     <Text style={[globalStyles.greeting, { color: isDarkMode ? '#fff' : '#000' }]}>
-                        Bienvenido de vuelta, {userName}
+                        Bienvenido, {userName}
                     </Text>
 
                     <View style={styles.moneyCardWrapper}>
@@ -84,7 +84,18 @@ export default function HomeScreen() {
                         >
                             <Text style={styles.moneyLabel}>Balance total</Text>
                             <Text style={styles.moneyAmount}>
-                                {balance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} OLS
+                                {(() => {
+                                    const fixed = (isNaN(balance) ? 0 : balance).toFixed(2);
+                                    const [intPart, decPart] = fixed.split('.');
+                                    const intFormatted = parseInt(intPart, 10).toLocaleString('es-ES');
+                                    return (
+                                        <>
+                                            <Text style={styles.moneyInteger}>{intFormatted}</Text>
+                                            <Text style={styles.moneyDecimals}>,{decPart}</Text>
+                                            <Text style={styles.moneyCurrency}> OLS</Text>
+                                        </>
+                                    );
+                                })()}
                             </Text>
                         </LinearGradient>
                     </View>
@@ -94,7 +105,7 @@ export default function HomeScreen() {
                             navigation.navigate('Steal')
                         }>
                             <View style={styles.actionIconWrapper}>
-                                <FontAwesome name="rocket" color="rgb(255, 255, 255)" size={25} />
+                                <FontAwesome6 name="hand-holding-dollar" iconStyle='solid' color="rgb(255, 255, 255)" size={25} />
                             </View>
                             <Text style={styles.actionLabel}>Robar</Text>
                         </TouchableOpacity>
@@ -167,6 +178,7 @@ const styles = StyleSheet.create({
         padding: 24,
     },
     moneyLabel: {
+        display: 'flex',
         fontSize: 12,
         color: '#e0e7ff',
         fontWeight: '600',
@@ -178,5 +190,22 @@ const styles = StyleSheet.create({
         fontSize: 35,
         fontWeight: 'bold',
         color: '#ffffff',
+    },
+    moneyInteger: {
+        fontSize: 35,
+        fontWeight: 'bold',
+        color: '#ffffff',
+    },
+    moneyDecimals: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#ffffff',
+        marginLeft: 4,
+    },
+    moneyCurrency: {
+        fontSize: 30,
+        fontWeight: '600',
+        color: '#e0e7ff',
+        marginLeft: 6,
     },
 });
