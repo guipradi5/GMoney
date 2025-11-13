@@ -46,13 +46,13 @@ export async function login(email, password) {
 export async function register(email, name, password) {
     console.log("Iniciando registro para:", { email, name, password });
     try {
-        const res = await fetch(`${API_URL}auth/register`, {
+        const res = await fetch(`${API_URL}/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, name, password }),
         });
 
-        console.log("Status:", res.status);
+        console.log("Status:", res.status, `${API_URL}/auth/register`);
         const text = await res.text();
         console.log("Response text (raw):", text);
 
