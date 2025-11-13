@@ -1,4 +1,6 @@
-import { useColorScheme, View, Text, StyleSheet, Modal, FlatList, ActivityIndicator, TouchableOpacity, SafeAreaView } from 'react-native';
+import { useColorScheme, View, Text, StyleSheet, Modal, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { AntDesign } from '@react-native-vector-icons/ant-design';
 import { useEffect, useState } from 'react';
 import { getTransactionHistory } from '../api/api';
