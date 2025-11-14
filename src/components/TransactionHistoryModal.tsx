@@ -10,6 +10,8 @@ interface Transaction {
     id: string;
     emiter: string;
     receiver: string;
+    emiter_name: string;
+    receiver_name: string;
     amount: string;
     date: string;
     state?: string;
@@ -37,7 +39,7 @@ export function TransactionHistoryModal({ visible, onClose }: Props) {
             const newTransactions = await getTransactionHistory(pageNum);
 
             if (pageNum === 1) {
-                const user = await AsyncStorage.getItem('email')
+                const user = await AsyncStorage.getItem('id')
                 setUser(user)
                 setTransactions(newTransactions);
             } else {
@@ -83,14 +85,14 @@ export function TransactionHistoryModal({ visible, onClose }: Props) {
             minute: '2-digit',
         });
 
-        let POS = item.emiter
+        let POS = item.emiter_name
         let sign = "+"
         let color = { color: '#00a558ff' }
 
         console.log(item.receiver)
 
         if (item.emiter === user) {
-            POS = item.receiver
+            POS = item.receiver_name
             sign = '-'
             color = { color: '#a50000ff' }
         }
