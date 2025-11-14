@@ -47,7 +47,7 @@ export function useHceReader(aidHex: string) {
             console.log("Tecnología NFC solicitada. Construyendo APDU...");
             const selectApdu = buildSelectApdu(aidHex);
             const apduBytes = hexToBytes(selectApdu.toString("hex"))
-            
+
             console.log("Enviando APDU:", apduBytes);
             // Enviar el APDU
             const resp: any = await (NfcManager as any).transceive(apduBytes);
@@ -65,6 +65,7 @@ export function useHceReader(aidHex: string) {
 
             console.log("HCE payload:", payload, `SW=${sw1.toString(16)}${sw2.toString(16)}`);
             setLastPayload(payload);
+            console.log("Lectura NFC completada.");
 
             return { payload, sw1, sw2 };
         } catch (err: any) {
@@ -109,5 +110,5 @@ export function useHceReader(aidHex: string) {
         };
     }, []);
 
-    return { isListening, lastPayload, startReading, stopReading };
+    return { isListening, lastPayload, setLastPayload, startReading, stopReading };
 }

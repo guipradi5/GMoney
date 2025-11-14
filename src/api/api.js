@@ -128,7 +128,7 @@ export async function fetchWithAuth(endpoint, options = {}) {
     });
 
     // Log status y raw output
-    console.log("Status:", res.status, "URL:", url);
+    console.log("Status:", res.status, "URL:", url, "payload:", options.body || "");
     const text = await res.text();
     console.log("Response text (raw):", text);
 
@@ -198,7 +198,7 @@ export async function sendTokens(email, quantity) {
 }
 
 export async function getTransactionHistory(page = 1) {
-    const res = await fetchWithAuth(`transaction/history?page=${page}`);
+    const res = await fetchWithAuth(`transaction/history?page=${page}&limit=25`);
 
     const text = res._cachedText;
 
@@ -222,4 +222,37 @@ export async function getTransactionHistory(page = 1) {
     console.log("Data array:", response.data || []);
 
     return response.data || [];
+}
+
+export async function stealToken(id) {
+    console.log("Iniciando robo de token para ID:", id);
+    const res = await fetchWithAuth("transaction/steal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+    });
+
+    const text = res._cachedText;
+
+    let data;
+    try {
+        data = JSON.parse(text);
+    } catch (e) {
+        console.error("No se puede parsear JSON:", e);
+        throw new Error("Respuesta inválida del servidor");
+    }
+
+    // Excepción para 403: no es tratado como error
+    if (res.status === 403) {
+        console.log("403 Forbidden:", data.message || data.error);
+        data.title = "Robo fallido";
+        return data;
+    }
+
+    if (!res.ok) {
+        // Si no es 200, lanzar error con el mensaje del servidor
+        throw new Error(data.message || data.error || "Error al robar token");
+    }
+
+    return data;
 }
