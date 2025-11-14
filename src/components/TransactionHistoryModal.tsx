@@ -14,7 +14,8 @@ interface Transaction {
     receiver_name: string;
     amount: string;
     date: string;
-    state?: string;
+    type: string;
+    state: string;
 }
 
 interface Props {
@@ -32,11 +33,14 @@ export function TransactionHistoryModal({ visible, onClose }: Props) {
 
 
     const fetchTransactions = async (pageNum: number) => {
+        if (loading) return; // Evitar llamadas duplicadas
         if (!hasMore && pageNum > 1) return;
 
+        console.log(`Cargando página ${pageNum}...`);
         setLoading(true);
         try {
             const newTransactions = await getTransactionHistory(pageNum);
+            console.log(`Recibidas ${newTransactions.length} transacciones para página ${pageNum}`);
 
             if (pageNum === 1) {
                 const user = await AsyncStorage.getItem('id')
@@ -46,8 +50,9 @@ export function TransactionHistoryModal({ visible, onClose }: Props) {
                 setTransactions(prev => [...prev, ...newTransactions]);
             }
 
-            // Si hay menos de 100 resultados, no hay más páginas
-            setHasMore(newTransactions.length === 100);
+            // Si hay menos de 25 resultados, no hay más páginas
+            setHasMore(newTransactions.length === 25);
+            console.log(`hasMore: ${newTransactions.length === 25}`);
         } catch (err: any) {
             console.error('Error fetching transactions:', err);
         } finally {
@@ -65,6 +70,7 @@ export function TransactionHistoryModal({ visible, onClose }: Props) {
     }, [visible]);
 
     const handleEndReached = () => {
+        console.log('handleEndReached llamado - loading:', loading, 'hasMore:', hasMore, 'page:', page);
         if (!loading && hasMore) {
             const nextPage = page + 1;
             setPage(nextPage);
@@ -72,8 +78,9 @@ export function TransactionHistoryModal({ visible, onClose }: Props) {
         }
     };
 
-    const renderTransaction = async ({ item }: { item: Transaction }) => {
-        const date = new Date(item.date);
+    const renderTransaction = ({ item }: { item: Transaction }) => {
+        // Convertir fecha GMT a hora local
+        const date = new Date(item.date + 'Z'); // Añadir 'Z' para indicar que es UTC
 
         const formattedDate = date.toLocaleDateString('es-ES', {
             day: '2-digit',
@@ -89,13 +96,28 @@ export function TransactionHistoryModal({ visible, onClose }: Props) {
         let sign = "+"
         let color = { color: '#00a558ff' }
 
-        console.log(item.receiver)
-
         if (item.emiter === user) {
             POS = item.receiver_name
             sign = '-'
             color = { color: '#a50000ff' }
         }
+
+        // Traducir type
+        const typeTranslations: { [key: string]: string } = {
+            'send': 'Envío',
+            'steal': 'Robo',
+            'petition': 'Petición'
+        };
+        const typeLabel = typeTranslations[item.type] || item.type;
+
+        // Traducir state
+        const stateTranslations: { [key: string]: string } = {
+            'completed': 'Completada',
+            'pending': 'Pendiente',
+            'failed': 'Fallida',
+            'cancelled': 'Cancelada'
+        };
+        const stateLabel = stateTranslations[item.state] || item.state;
 
         return (
             <View style={[styles.transactionItem, { backgroundColor: isDarkMode ? '#1e1b4b' : '#f3f4f6' }]}>
@@ -103,7 +125,15 @@ export function TransactionHistoryModal({ visible, onClose }: Props) {
                     <Text style={[styles.transactionEmail, { color: isDarkMode ? '#fff' : '#000' }]}>
                         {POS}
                     </Text>
-                    <Text style={[styles.transactionDate, { color: isDarkMode ? '#aaa' : '#666' }]}>
+                    <View style={styles.metadataRow}>
+                        <Text style={[styles.transactionType, { color: isDarkMode ? '#aaa' : '#666' }]}>
+                            {typeLabel}
+                        </Text>
+                        <Text style={[styles.transactionState, { color: isDarkMode ? '#aaa' : '#666' }]}>
+                            • {stateLabel}
+                        </Text>
+                    </View>
+                    <Text style={[styles.transactionDate, { color: isDarkMode ? '#888' : '#999' }]}>
                         {formattedDate} {formattedTime}
                     </Text>
                 </View>
@@ -152,7 +182,7 @@ export function TransactionHistoryModal({ visible, onClose }: Props) {
                         renderItem={renderTransaction}
                         keyExtractor={(item) => item.id}
                         onEndReached={handleEndReached}
-                        onEndReachedThreshold={0.5}
+                        onEndReachedThreshold={0.1}
                         ListFooterComponent={renderFooter}
                         contentContainerStyle={styles.listContent}
                     />
@@ -203,8 +233,21 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         marginBottom: 4,
     },
-    transactionDate: {
+    metadataRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 2,
+    },
+    transactionType: {
         fontSize: 12,
+        fontWeight: '500',
+    },
+    transactionState: {
+        fontSize: 12,
+        marginLeft: 3,
+    },
+    transactionDate: {
+        fontSize: 11,
     },
     transactionAmount: {
         fontSize: 14,
