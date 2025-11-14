@@ -132,7 +132,7 @@ export default function SendScreen() {
                 />
 
                 {/* Remaining balance */}
-                <View style={styles.balanceContainer}>
+                <View style={[styles.balanceContainer, { marginTop: 12, marginBottom: 24 }]}>
                     <Text style={[styles.balanceLabel, { color: isDarkMode ? '#aaa' : '#666' }]}>
                         Balance restante
                     </Text>
@@ -192,8 +192,6 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     balanceContainer: {
-        marginTop: 24,
-        marginBottom: 24,
         alignItems: 'center',
     },
     balanceLabel: {
