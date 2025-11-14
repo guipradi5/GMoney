@@ -5,6 +5,8 @@ import { AntDesign } from '@react-native-vector-icons/ant-design';
 import { useEffect, useState } from 'react';
 import { getTransactionHistory } from '../api/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import FontAwesome from '@react-native-vector-icons/fontawesome';
+import FontAwesome6 from '@react-native-vector-icons/fontawesome6';
 
 interface Transaction {
     id: string;
@@ -78,67 +80,112 @@ export function TransactionHistoryModal({ visible, onClose }: Props) {
         }
     };
 
-    const renderTransaction = ({ item }: { item: Transaction }) => {
-        // Convertir fecha GMT a hora local
-        const date = new Date(item.date + 'Z'); // Añadir 'Z' para indicar que es UTC
+    const getTransactionDetails = (item: Transaction) => {
+        const isUserEmiter = item.emiter === user;
+        const isStealCompleted = item.type === 'steal' && item.state === 'completed';
+        const isPendingPetition = item.type === 'petition' && item.state !== 'completed';
 
-        const formattedDate = date.toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: '2-digit',
-            year: '2-digit',
-        });
-        const formattedTime = date.toLocaleTimeString('es-ES', {
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-
-        let POS = item.emiter_name
-        let sign = "+"
-        let color = { color: '#00a558ff' }
-
-        if (item.emiter === user) {
-            POS = item.receiver_name
-            sign = '-'
-            color = { color: '#a50000ff' }
+        let amountColor = isUserEmiter ? '#a50000ff' : '#00a558ff';
+        if (isPendingPetition) {
+            amountColor = isDarkMode ? '#888' : '#999';
         }
 
-        // Traducir type
-        const typeTranslations: { [key: string]: string } = {
-            'send': 'Envío',
-            'steal': 'Robo',
-            'petition': 'Petición'
+        return {
+            displayName: isUserEmiter ? item.receiver_name : item.emiter_name,
+            sign: isUserEmiter ? '-' : '+',
+            amountColor,
+            isSuccessfulSteal: isStealCompleted && !isUserEmiter,
+            isRobbedSteal: isStealCompleted && isUserEmiter,
         };
-        const typeLabel = typeTranslations[item.type] || item.type;
+    };
 
-        // Traducir state
-        const stateTranslations: { [key: string]: string } = {
-            'completed': 'Completada',
-            'pending': 'Pendiente',
-            'failed': 'Fallida',
-            'cancelled': 'Cancelada'
+    const getTransactionStyle = (details: ReturnType<typeof getTransactionDetails>, item: Transaction) => {
+        if (details.isSuccessfulSteal) {
+            return {
+                background: isDarkMode ? '#224b45ff' : '#ede7f6ff',
+                borderColor: '#149b41ff',
+            };
+        }
+        if (details.isRobbedSteal) {
+            return {
+                background: isDarkMode ? '#3d1f1fff' : '#ffebee',
+                borderColor: '#c62828',
+            };
+        }
+        if (item.type === 'petition' && item.state !== 'completed') {
+            return {
+                background: isDarkMode ? '#232131ff' : '#e8e4f3',
+                borderColor: 'transparent',
+            };
+        }
+        return {
+            background: isDarkMode ? '#1e1b4b' : '#f3f4f6',
+            borderColor: 'transparent',
         };
-        const stateLabel = stateTranslations[item.state] || item.state;
+    };
+
+    const renderTransactionIcon = (item: Transaction, details: ReturnType<typeof getTransactionDetails>) => {
+        const iconColor = isDarkMode ? '#aaa' : '#666';
+
+        if (details.isRobbedSteal) {
+            return (
+                <>
+                    <FontAwesome6 name="hand-holding" size={18} color={iconColor} style={{ transform: [{ scaleX: -1 }, { rotate: '180deg' }] }} iconStyle="solid" />
+                    <FontAwesome6 name="sack-dollar" size={12} color='#ff3333' iconStyle="solid" />
+                </>
+            );
+        }
 
         return (
-            <View style={[styles.transactionItem, { backgroundColor: isDarkMode ? '#1e1b4b' : '#f3f4f6' }]}>
+            <>
+                <FontAwesome6 name="sack-dollar" size={12} color={details.isSuccessfulSteal ? '#ffd700' : iconColor} iconStyle="solid" />
+                {item.type === 'steal' ? (
+                    <FontAwesome6 name="hand-holding" size={18} color={iconColor} style={{ transform: [{ rotate: '180deg' }] }} iconStyle="solid" />
+                ) : (
+                    <FontAwesome name={item.type === 'send' ? 'long-arrow-left' : 'long-arrow-right'} size={24} color={iconColor} />
+                )}
+            </>
+        );
+    };
+
+    const renderTransaction = ({ item }: { item: Transaction }) => {
+        const date = new Date(item.date + 'Z');
+        const formattedDate = date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' });
+        const formattedTime = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+        const details = getTransactionDetails(item);
+        const style = getTransactionStyle(details, item);
+
+        const typeLabels: Record<string, string> = { send: 'Envío', steal: 'Robo', petition: 'Petición' };
+        const stateLabels: Record<string, string> = { completed: 'Completado', pending: 'Pendiente', failed: 'Fallida', cancelled: 'Cancelado' };
+
+        return (
+            <View style={[styles.transactionItem, {
+                backgroundColor: style.background,
+                borderLeftWidth: style.borderColor !== 'transparent' ? 3 : 0,
+                borderLeftColor: style.borderColor,
+            }]}>
                 <View style={styles.transactionInfo}>
-                    <Text style={[styles.transactionEmail, { color: isDarkMode ? '#fff' : '#000' }]}>
-                        {POS}
-                    </Text>
+                    <View style={styles.nameRow}>
+                        <Text style={[styles.transactionEmail, { color: isDarkMode ? '#fff' : '#000' }]}>
+                            {details.displayName}
+                        </Text>
+                        {renderTransactionIcon(item, details)}
+                    </View>
                     <View style={styles.metadataRow}>
                         <Text style={[styles.transactionType, { color: isDarkMode ? '#aaa' : '#666' }]}>
-                            {typeLabel}
+                            {typeLabels[item.type] || item.type}
                         </Text>
                         <Text style={[styles.transactionState, { color: isDarkMode ? '#aaa' : '#666' }]}>
-                            • {stateLabel}
+                            • {stateLabels[item.state] || item.state}
                         </Text>
                     </View>
                     <Text style={[styles.transactionDate, { color: isDarkMode ? '#888' : '#999' }]}>
                         {formattedDate} {formattedTime}
                     </Text>
                 </View>
-                <Text style={[styles.transactionAmount, color]}>
-                    {sign}{parseFloat(item.amount).toFixed(2)} OLS
+                <Text style={[styles.transactionAmount, { color: details.amountColor }]}>
+                    {details.sign}{parseFloat(item.amount).toFixed(2)} OLS
                 </Text>
             </View>
         );
@@ -228,10 +275,15 @@ const styles = StyleSheet.create({
     transactionInfo: {
         flex: 1,
     },
+    nameRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginBottom: 4,
+    },
     transactionEmail: {
         fontSize: 14,
         fontWeight: '600',
-        marginBottom: 4,
     },
     metadataRow: {
         flexDirection: 'row',
