@@ -1,62 +1,29 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from 'react-native';
 import { AntDesign } from '@react-native-vector-icons/ant-design';
-import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 import { globalStyles } from '../styles/global';
+import { useHceReader } from '../hooks/useHceReader';
 
 export default function StealScreen() {
-    const safeAreaInsets = useSafeAreaInsets();
     const isDarkMode = useColorScheme() === 'dark';
-    const [isListening, setIsListening] = useState(false);
-    const listeningRef = useRef(false);
+    const { isListening, lastPayload, startReading, stopReading } = useHceReader("F0001508050508");
 
     useEffect(() => {
-        let isMounted = true;
+        startReading();
+        return () => stopReading();
+    }, [startReading, stopReading]);
 
-        async function startNfc() {
-            try {
-                await NfcManager.start();
-                listeningRef.current = true;
-                setIsListening(true);
-                readLoop();
-            } catch (e) {
-                console.warn('Error iniciando NFC:', e);
-            }
+    // Parsear el JSON del payload si existe
+    let userId = null;
+    if (lastPayload) {
+        try {
+            const data = JSON.parse(lastPayload);
+            userId = data.accountId;
+        } catch (e) {
+            console.warn("Error al parsear payload:", e);
         }
-
-        async function readLoop() {
-            while (listeningRef.current && isMounted) {
-                try {
-                    // Activar la lectura NFC
-                    await NfcManager.requestTechnology(NfcTech.Ndef);
-                    const tag = await NfcManager.getTag();
-                    if (tag) {
-                        console.log('Tag detectado:', tag);
-                    }
-                } catch (err) {
-                    // Silenciamos errores de timeout o cancelación
-                } finally {
-                    // Liberamos el recurso NFC
-                    await NfcManager.cancelTechnologyRequest();
-                    // Esperamos un poco antes de volver a intentar
-                    //@ts-ignore
-                    await new Promise(res => setTimeout(res, 800));
-                }
-            }
-        }
-
-        startNfc();
-
-        // Limpieza al salir de la screen
-        return () => {
-            isMounted = false;
-            listeningRef.current = false;
-            setIsListening(false);
-            NfcManager.cancelTechnologyRequest().catch(() => { });
-        };
-    }, []);
+    }
 
     return (
         <View style={[globalStyles.container, { paddingTop: '40%' }]}>
@@ -71,8 +38,11 @@ export default function StealScreen() {
                     {'\n'}
                     {isListening ? 'Acerca otro móvil para robar 1 token' : ''}
                 </Text>
-                <Text style={styles.description}>
-                </Text>
+                {userId && (
+                    <Text style={[styles.description, { color: 'limegreen', fontWeight: 'bold', fontSize: 18, marginTop: 20 }]}>
+                        ¡Usuario detectado: {userId}!
+                    </Text>
+                )}
             </View>
         </View>
     );

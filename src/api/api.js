@@ -1,4 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { NativeModules } from 'react-native';
+const { HceModule } = NativeModules;
 
 const API_URL = "https://guillermopradas.com/api/gmoney"; // usa 10.0.2.2 en Android Emulator
 
@@ -37,8 +39,17 @@ export async function login(email, password) {
 
     await AsyncStorage.setItem("accessToken", response.access_token);
     await AsyncStorage.setItem("refreshToken", response.refresh_token);
+    await AsyncStorage.setItem("id", response.user.id);
     await AsyncStorage.setItem("email", response.user.email);
     await AsyncStorage.setItem("name", response.user.name);
+
+    const userId = response.user.id;
+    if (HceModule && HceModule.setAccountId) {
+        console.log("Configurando HCE con id:", userId);
+        HceModule.setAccountId(userId);
+    } else {
+        console.warn("HceModule no disponible");
+    }
 
     return data;
 }
@@ -95,7 +106,7 @@ export async function getProfile() {
 
     const response = data.response || data; // Ajuste aquí para manejar ambos casos
 
-    await AsyncStorage.setItem("email", response.user);
+    await AsyncStorage.setItem("email", response.email);
     await AsyncStorage.setItem("name", response.name);
     await AsyncStorage.setItem("balance", response.balance);
 
